@@ -1,0 +1,36 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the CDIS paper."
+title: "CDIS: Cross-Dimensional Class-Agnostic 3D Instance Segmentation via 2D Mask Tracking and 3D-2D Projection Merging"
+authors:
+  - family-names: Kim
+    given-names: Juno
+  - family-names: Yoon
+    given-names: Hye-Jung
+  - family-names: Park
+    given-names: Yesol
+  - family-names: Zhang
+    given-names: Byoung-Tak
+repository-code: "https://github.com/teamROBI/CDIS"
+url: "https://arxiv.org/abs/2607.17778"
+preferred-citation:
+  type: conference-paper
+  title: "CDIS: Cross-Dimensional Class-Agnostic 3D Instance Segmentation via 2D Mask Tracking and 3D-2D Projection Merging"
+  authors:
+    - family-names: Kim
+      given-names: Juno
+    - family-names: Yoon
+      given-names: Hye-Jung
+    - family-names: Park
+      given-names: Yesol
+    - family-names: Zhang
+      given-names: Byoung-Tak
+  collection-title: "2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)"
+  conference:
+    name: "2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)"
+  year: 2025
+  month: 10
+  start: 4269
+  end: 4274
+  doi: "10.1109/IROS61939.2025.11247636"
+  publisher:
+    name: IEEE

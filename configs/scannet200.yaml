@@ -1,0 +1,102 @@
+vfm_config:
+  cropformer_config:
+    config-file: ./libs/detectron2/projects/CropFormer/configs/entityv2/entity_segmentation/cropformer_hornet_3x.yaml
+    model-weights: ./weights/CropFormer_hornet_3x_03823a.pth
+    confidence-threshold: 0.7   # keep only CropFormer masks with score >= this
+
+dataset_type: scannetv2            # Options: scannetv2
+mask_model: cropformer             # Options: cropformer
+depth_type: sup_depth              # Options: sup_depth, pc_depth, raw_depth
+# NOTE: --part / --subprocess_num are CLI arguments of CDIS/run.py, not config keys.
+
+full_process: true                 # false -> process only `chosen_scene`
+chosen_scene: ["scene0011_00", "scene0011_01", "scene0084_02", "scene0549_00", "scene0552_00", "scene0552_01", "scene0616_00", "scene0655_00", "scene0655_01", "scene0655_02", "scene0686_02"]
+
+data:  
+  data_all_ready: true
+  data_root: data          # single root for ALL inputs/caches; symlink it wherever your data lives
+  scans_2d_path: ./${data.data_root}/${dataset_type}/input/scannetv2_images/val
+  
+  camera:
+    poses_path: 'pose/'
+    intrinsic_path: 'intrinsics/intrinsic_color.txt' #intrinsic_color.txt, intrinsic_depth.txt
+    intrinsic_resolution: [968, 1296] #[968, 1296] [480, 640]
+
+  images:
+    images_path: 'color/'
+    images_ext: '.jpg'
+    # NOTE: precomputed 2D masks are read from `exp.mask2d_output` (see below), not from here.
+
+  depths:
+    depths_path: 'depth/'
+    depths_ext: '.png'
+    depth_scale: 1000
+    depth_supplemented: true
+    synthetic_depth_path: './${data.data_root}/${dataset_type}/process_saved/depth_from_pc'
+    synthetic_depth_ext: '.png'
+
+  pcd_path: ./${data.data_root}/${dataset_type}/input/scannetv2_pcds/val
+  spp_path: ./${data.data_root}/${dataset_type}/input/mesh_segmentation/0.01_20/scene_name_vh_clean_2.0.010000.segs.json
+  scene_name_path: ./assets/scannetv2_val.txt   # shipped with the repo
+
+  img_size: [480, 640]
+  voxel_size: 0.03
+  
+matching_2d:
+  image_iter: 1
+  queue_size: 5           # q_max: frame-queue length for temporal tracking (paper)
+  iou_2d_th: 0.75         # tau_IoU2D: 2D mask-matching IoU threshold
+  intensity_th: 3           # min number of frames an instance must be tracked in to be kept
+  parallel_process: false   # WARNING: the parallel matcher does not receive `cfg`, so the five
+                            # flags below are silently ignored when this is true. Keep false.
+
+  # 2D-tracking id/IoU handling (Sec. III-A). Flags below toggle optional variants.
+  fix_id_collision: true    # advance max_past_id past frame-0 ids so minted ids don't collide
+  iou_full_union: true      # Eq.4 IoU over the full mask union (vs the co-visible region only)
+  warp_z_filter: false      # drop behind-camera (z<=0) points when warping
+  warp_zbuffer: false       # nearest-point-wins scatter in the warp (occlusion z-buffer)
+  match_one_to_one: false   # a past track id may be claimed by only one current instance
+
+merging_3d:
+  image_iter: 5             # project superpoints into every Nth tracked frame
+  vis_threshold: 0.05       # depth-agreement tolerance in METRES for the visibility test
+                            # (|sensor_depth - point_depth| <= vis_threshold); not a viz flag
+
+  iou_3d_th: 0.5            # tau_IoU3D  (Eq. 6)
+  iom_3d_th: 0.6            # tau_IoMin3D (Eq. 7)
+  iom_frame_th: 0.3         # temporal co-occurrence threshold (Eq. 8)
+
+  # superpoint-projection association / cleanup
+  assoc_overlap_th: 0.6     # min per-frame footprint overlap fraction to bind a superpoint (Eq. 5 gate)
+  min_assoc_frames: 2       # min frames a superpoint must be associated to keep the vote
+  dbscan_cleanup: true      # keep only the largest DBSCAN cluster per 3D instance
+                            # (ignored when dbscan_split is true -- the two are mutually exclusive)
+  floor_removal: false      # RANSAC floor removal (can discard valid instances)
+  detach_overlap: false     # Eq. 8 variant: detach shared superpoints from the larger instance
+  merge_order: iou_desc     # Eq. 6 merge schedule: iou_desc | frame_prox | iou_asc
+
+  # unassigned-point handling
+  grow_unassigned: true     # flood unlabeled (-1) points into the nearest instance
+  grow_radius: 0.03         # meters; radius for grow_unassigned
+  dbscan_split: false       # keep every DBSCAN cluster as its own instance
+  emit_stats: false         # dump per-instance stats (purity/size/frames) for analysis
+
+exp:
+  exp_name: scannet200
+  hyper_parameters: VX${data.voxel_size}_IT${matching_2d.image_iter}_Q${matching_2d.queue_size}_ITH${matching_2d.iou_2d_th}
+  save_path: output/${exp.exp_name}/${exp.hyper_parameters}/save_inst_seg_pcd/${mask_model}_${depth_type}
+
+  mask2d_output: ${data.data_root}/${dataset_type}/process_saved/2d_seg/${mask_model}
+  matching_2d_output: ${data.data_root}/${dataset_type}/process_saved/matching_2d_result/IT${matching_2d.image_iter}_Q${matching_2d.queue_size}_TH${matching_2d.iou_2d_th}
+
+debug:
+  visualize_dense_pcd: false
+  visualize_warped_masks: false
+  visualize_frame_track: false
+  visualize_removed_instances_by_instensity: false
+  visualize_instances_by_intensity: false
+  merging_3d_vis_mode: 0
+
+  show_logs: false
+  debug_out_dir: ./temp_trash
+  developing: false         # WARNING: true truncates every scene to its first 200 frames

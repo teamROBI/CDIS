@@ -1,0 +1,56 @@
+[project]
+name = "cdis"
+version = "1.0.0"
+description = "CDIS: Cross-Dimensional Class-Agnostic 3D Instance Segmentation via 2D Mask Tracking and 3D-2D Projection Merging (IROS 2025)"
+readme = "README.md"
+requires-python = "==3.10.*"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Juno Kim" },
+    { name = "Hye-Jung Yoon" },
+    { name = "Yesol Park" },
+    { name = "Byoung-Tak Zhang" },
+]
+
+# Runtime dependencies for the default pipeline (precomputed 2D masks).
+# Generating masks additionally needs detectron2 + CropFormer + mmcv, which compile CUDA
+# extensions against your local toolkit and therefore cannot be locked here -- see docs/INSTALL.md.
+dependencies = [
+    "torch==1.11.0",
+    "torchvision==0.12.0",
+    # numpy 2.x breaks numba and the torch 1.11 numpy bridge
+    "numpy==1.24.4",
+    "opencv-python==4.9.0.80",
+    "open3d==0.19.0",
+    "imageio==2.37.0",
+    "natsort==8.4.0",
+    "numba==0.58.1",
+    "scipy==1.15.3",
+    "scikit-learn==1.7.0",
+    "omegaconf==2.3.0",
+    "tqdm==4.65.2",
+    "matplotlib==3.10.3",
+    "pillow==9.3.0",
+    "plyfile==1.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/teamROBI/CDIS"
+Paper = "https://ieeexplore.ieee.org/document/11247636"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["CDIS", "utils", "evaluation"]
+
+# PyTorch 1.11 + CUDA 11.3 wheels are not on PyPI; pull torch/torchvision from the cu113 index.
+[[tool.uv.index]]
+name = "pytorch-cu113"
+url = "https://download.pytorch.org/whl/cu113"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu113" }
+torchvision = { index = "pytorch-cu113" }

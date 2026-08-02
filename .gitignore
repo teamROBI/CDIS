@@ -1,0 +1,82 @@
+# input and output directories (root-anchored: must NOT match libs/**/data/)
+/data
+/data_fast
+/output
+
+# submodules
+/libs/detectron2/
+
+# weight directories
+weights/*
+!weights/README.md
+
+# trash and temporary files
+etc/
+temp_trash/
+org/
+temp.py
+
+# specific file types
+*.csv
+*.ply
+*.png
+*.json
+*.diff
+*.jpg
+
+# ...but keep documentation figures tracked
+!docs/*.png
+
+# compilation and distribution
+__pycache__/
+_ext/
+*.pyc
+*.pyd
+*.so
+*.dll
+*.egg-info/
+build/
+dist/
+wheels/
+
+# pytorch/python/numpy formats
+*.pth
+*.pkl
+*.npy
+*.ts
+model_ts*.txt
+
+# ipython/jupyter notebooks
+*.ipynb
+**/.ipynb_checkpoints/
+
+# Editor temporaries
+*.swn
+*.swo
+*.swp
+*~
+
+# editor settings
+.idea/
+.vscode/
+_darcs/
+# generated evaluation artifacts
+evaluation/*_result.txt
+
+# paper pdf (linked from README)
+*.pdf
+
+# external data/scratch symlinks
+/data_fast
+/temp_trash
+/data
+/output
+
+
+# local reproduction log (not published)
+RESULTS.md
+
+# uv / virtualenv (uv.lock IS committed)
+.venv/
+__pycache__/
+*.pyc
